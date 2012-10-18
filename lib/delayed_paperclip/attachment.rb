@@ -7,7 +7,7 @@ module DelayedPaperclip
       base.alias_method_chain :post_processing, :delay
       base.alias_method_chain :post_processing=, :delay
       base.alias_method_chain :save, :prepare_enqueueing
-      base.alias_method_chain :post_process_styles, :processing
+      base.alias_method_chain :after_flush_writes, :processing
     end
 
     module InstanceMethods
@@ -42,8 +42,8 @@ module DelayedPaperclip
         self.job_is_processing = false
       end
 
-      def post_process_styles_with_processing(*args)
-        post_process_styles_without_processing(*args)
+      def after_flush_writes_with_processing(*args)
+        after_flush_writes_without_processing(*args)
 
         # update_column is available in rails 3.1 instead we can do this to update the attribute without callbacks
 
