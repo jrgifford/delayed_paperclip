@@ -57,6 +57,7 @@ def reset_class(class_name, options)
   klass.class_eval do
     include Paperclip::Glue
     has_attached_file     :image
+
     process_in_background :image, options if options[:with_processed]
     after_update :reprocess if options[:with_after_update_callback]
 

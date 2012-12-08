@@ -1,5 +1,5 @@
 PATH
-  remote: /home/jrg/code/delayed_paperclip
+  remote: /Users/ScotterC/code/github/delayed_paperclip
   specs:
     delayed_paperclip (2.5.0.1)
       paperclip (>= 3.3.0)

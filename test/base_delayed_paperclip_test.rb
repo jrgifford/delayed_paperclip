@@ -73,11 +73,20 @@ module BaseDelayedPaperclipTest
   def test_unprocessed_image_returns_missing_url
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
-    #assert_equal "/images/original/missing.png", dummy.image.url(:original, :timestamp => true)
-    dummy.image.url.starts_with?("/images/original/missing.png")
+    assert dummy.image.url.starts_with?("/images/original/missing.png")
     process_jobs
     dummy.reload
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
+  end
+
+  def test_unprocess_image_returns_reprocessing_url
+    reset_dummy :processing_image_url => "/images/original/processing.png"
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    assert dummy.image.url.starts_with?("/images/original/processing.png")
+    process_jobs
+    dummy.reload
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
   def test_unprocessed_image_not_returning_missing_url_if_turned_of_globally
@@ -85,27 +94,27 @@ module BaseDelayedPaperclipTest
     reset_dummy :with_processed => false
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
     process_jobs
     dummy.reload
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
   def test_unprocessed_image_not_returning_missing_url_if_turned_of_on_instance
     reset_dummy :with_processed => false, :url_with_processing => false
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
     process_jobs
     dummy.reload
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
   def test_original_url_when_no_processing_column
     reset_dummy :with_processed => false
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")  
+    assert dummy.reload.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
   def test_original_url_if_image_changed
@@ -113,9 +122,9 @@ module BaseDelayedPaperclipTest
     dummy.save!
     dummy.image = File.open("#{RAILS_ROOT}/test/fixtures/12k.png")
     dummy.save!
-    dummy.image.url.starts_with?("/images/original/missing.png")
+    assert dummy.image.url.starts_with?("/images/original/missing.png")
     process_jobs
-    dummy.image.url.starts_with?("/system/images/1/original/12k.png")
+    assert dummy.reload.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
   def test_missing_url_if_image_hasnt_changed

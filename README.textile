@@ -60,12 +60,12 @@ To have the missing image url be outputted by paperclip while the image is being
     def self.up
       add_column :users, :avatar_processing, :boolean
     end
-    
+
     def self.down
       remove_column :users, :avatar_processing
     end
   end
-  
+
   @user = User.new(:avatar => File.new(...))
   @user.save
   @user.avatar.url #=> "/images/original/missing.png"
@@ -74,6 +74,30 @@ To have the missing image url be outputted by paperclip while the image is being
   @user.reload
   @user.avatar.url #=> "/system/images/3/original/IMG_2772.JPG?1267562148"
 </code></pre>
+
+h4. Custom image for processing
+
+This is useful if you have a difference between missing images and images currently
+being processed.
+
+<pre><code>
+
+  class User < ActiveRecord::Base
+    has_attached_file :avatar
+
+    process_in_background :avatar, :processing_image_url => "/images/original/processing.jpg"
+  end
+
+  @user = User.new(:avatar => File.new(...))
+  @user.save
+  @user.avatar.url #=> "/images/original/processing.png"
+  Delayed::Worker.new.work_off
+
+  @user.reload
+  @user.avatar.url #=> "/system/images/3/original/IMG_2772.JPG?1267562148"
+
+</code></pre>
+
 
 h2. What if I'm not using images?
 

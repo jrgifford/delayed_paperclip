@@ -10,7 +10,8 @@ module DelayedPaperclip
     def options
       @options ||= {
         :background_job_class => detect_background_task,
-        :url_with_processing  => true
+        :url_with_processing  => true,
+        :processing_image_url => nil
       }
     end
 
@@ -49,7 +50,8 @@ module DelayedPaperclip
       attachment_definitions[name][:delayed] = {}
       {
         :priority => 0,
-        :url_with_processing => DelayedPaperclip.options[:url_with_processing]
+        :url_with_processing => DelayedPaperclip.options[:url_with_processing],
+        :processing_image_url => options[:processing_image_url]
       }.each do |option, default|
         attachment_definitions[name][:delayed][option] = options.key?(option) ? options[option] : default
       end
