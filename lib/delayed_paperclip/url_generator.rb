@@ -4,6 +4,7 @@ module DelayedPaperclip
     def self.included(base)
       base.send :include, InstanceMethods
       base.alias_method_chain :most_appropriate_url, :processed
+      base.alias_method_chain :timestamp_possible?, :processed
     end
 
     def most_appropriate_url_with_processed
@@ -15,6 +16,14 @@ module DelayedPaperclip
         end
       else
         @attachment_options[:url]
+      end
+    end
+    
+    def timestamp_possible_with_processed?
+      if delayed_default_url?
+        false
+      else
+        timestamp_possible_without_processed?
       end
     end
 
