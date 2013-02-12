@@ -10,6 +10,7 @@ gem "json", :platforms=>:ruby_18
 gem "delayed_job", :require=>false
 gem "delayed_job_active_record", :require=>false
 gem "resque", :require=>false
+gem "sidekiq", :require=>false
 gem "rails", "~> 3.1.0"
 
 gemspec :path=>"../"
