@@ -110,6 +110,20 @@ module BaseDelayedPaperclipTest
     assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
+  def test_unprocessed_processing_url_when_file
+    reset_dummy :with_processed => true, :processing_image_url => "processing"
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    assert dummy.reload.image.url.starts_with?("processing")
+  end
+
+  def test_processed_default_url_when_no_file
+    reset_dummy :with_processed => true, :processing_image_url => "processing"
+    dummy = Dummy.new()
+    dummy.save!
+    assert dummy.reload.image.url.starts_with?("/images/original/missing.png")
+  end
+
   def test_original_url_when_no_processing_column
     reset_dummy :with_processed => false
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
