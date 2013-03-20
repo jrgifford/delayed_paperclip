@@ -39,7 +39,7 @@ module DelayedPaperclip
       def process_delayed!
         self.job_is_processing = true
         self.post_processing = true
-        reprocess!
+        reprocess!(*delayed_options[:only_process])
         self.job_is_processing = false
       end
 

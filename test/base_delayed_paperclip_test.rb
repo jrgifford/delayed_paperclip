@@ -171,4 +171,12 @@ module BaseDelayedPaperclipTest
     dummy.name = "foobar123"
   end
 
+  def test_delayed_paperclip_functioning_with_only_process_option
+    reset_class "Dummy", :with_processed => true, :only_process => [:thumbnail]
+    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:thumbnail)
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    process_jobs
+  end
+
 end

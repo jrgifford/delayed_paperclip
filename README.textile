@@ -98,6 +98,17 @@ being processed.
 
 </code></pre>
 
+h4. Only process certain styles
+
+This is useful if you don't want the background job to reprocess all styles.
+
+<pre><code>
+  class User < ActiveRecord::Base
+    has_attached_file :avatar, :styles => { :small => "25x25#", :medium => "50x50x" }
+
+    process_in_background :avatar, :only_process => [:small]
+  end
+</code></pre>
 
 h2. What if I'm not using images?
 

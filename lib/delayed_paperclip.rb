@@ -51,6 +51,7 @@ module DelayedPaperclip
       attachment_definitions[name][:delayed] = {}
       {
         :priority => 0,
+        :only_process => [],
         :url_with_processing => DelayedPaperclip.options[:url_with_processing],
         :processing_image_url => options[:processing_image_url]
       }.each do |option, default|
