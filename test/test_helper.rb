@@ -5,6 +5,7 @@ require 'active_record'
 require 'logger'
 require 'sqlite3'
 require 'paperclip/railtie'
+
 Paperclip::Railtie.insert
 
 ROOT       = File.join(File.dirname(__FILE__), '..')
@@ -51,13 +52,15 @@ def build_dummy_table(with_processed)
 end
 
 def reset_class(class_name, options)
+  options[:paperclip] = {} if options[:paperclip].nil?
   ActiveRecord::Base.send(:include, Paperclip::Glue)
   Object.send(:remove_const, class_name) rescue nil
   klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
   klass.class_eval do
     include Paperclip::Glue
-    has_attached_file     :image
+    has_attached_file  :image, options[:paperclip]
 
+    options.delete(:paperclip)
     process_in_background :image, options if options[:with_processed]
     after_update :reprocess if options[:with_after_update_callback]
 

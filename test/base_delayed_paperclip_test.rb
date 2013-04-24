@@ -179,4 +179,43 @@ module BaseDelayedPaperclipTest
     process_jobs
   end
 
+  def test_delayed_paperclip_functioning_with_paperlcip_only_process_option
+    reset_class "Dummy", :with_processed => true, :paperclip => { :only_process => [:thumbnail] }
+    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:thumbnail)
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    process_jobs
+  end
+
+  def test_delayed_paperclip_functioning_with_paperclip_and_delayed_only_process_option
+    reset_class "Dummy", :with_processed => true, :only_process => [:large_thumbnail], :paperclip => { :only_process => [:thumbnail] }
+    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:large_thumbnail)
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    process_jobs
+  end
+
+  def test_delayed_paperclip_should_convert_image_formats
+    reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    process_jobs
+    assert dummy.reload.image.url(:thumbnail).starts_with?("/system/dummies/images/000/000/001/thumbnail/12k.jpg")
+    assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
+  end
+
+  def test_delayed_paperclip_should_not_run_on_direct_reprocess
+    reset_dummy :with_processed => true
+    reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy = Dummy.new(:image => File.open("#{ROOT}/test/fixtures/12k.png"))
+    dummy.image = File.open("#{RAILS_ROOT}/test/fixtures/12k.png")
+    dummy.save
+    assert_equal 1, jobs_count
+    process_jobs
+    dummy.update_attribute(:image_processing, false)
+    dummy.image.reprocess!(:thumbnail)
+    assert_equal 0, jobs_count
+  end
+
 end
