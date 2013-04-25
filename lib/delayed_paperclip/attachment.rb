@@ -88,8 +88,10 @@ module DelayedPaperclip
       def reprocess_with_save_options!(*style_args)
 
         unless caller.collect {|c| c[/`([^']*)'/, 1]}.include?("process_delayed!")
-          self.class.save_only_process_option(delayed_options[:only_process])
-          @instance.class.attachment_definitions[@name][:delayed][:only_process] = style_args
+          if delayed_options
+            self.class.save_only_process_option(delayed_options[:only_process])
+            @instance.class.attachment_definitions[@name][:delayed][:only_process] = style_args
+          end
         end
 
         reprocess_without_save_options!(*style_args)
