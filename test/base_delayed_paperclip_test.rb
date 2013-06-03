@@ -221,4 +221,18 @@ module BaseDelayedPaperclipTest
     assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
   end
 
+  def test_delayed_paperclip_without_delay
+    reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    existing_jobs_count = jobs_count
+    dummy.update_attribute(:image_processing, false)
+    dummy.image.reprocess_without_delay!(:thumbnail)
+    Paperclip::Attachment.any_instance.expects(:reprocess!).never
+    assert_equal existing_jobs_count, jobs_count
+    assert_equal false, dummy.image_processing?
+    assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
+  end
+
+
 end

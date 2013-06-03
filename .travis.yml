@@ -1,5 +1,6 @@
 rvm:
   - 1.9.2
+  - 2.0.0
   - rbx-19mode
 
 services:
@@ -15,3 +16,4 @@ notifications:
 gemfile:
   - gemfiles/rails3.gemfile
   - gemfiles/rails3_1.gemfile
+  - gemfiles/rails3_2.gemfile

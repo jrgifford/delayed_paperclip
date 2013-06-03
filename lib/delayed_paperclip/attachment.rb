@@ -97,6 +97,11 @@ module DelayedPaperclip
         reprocess_without_save_options!(*style_args)
       end
 
+      def reprocess_without_delay!(*style_args)
+        @post_processing_with_delay = true
+        reprocess!(*style_args)
+      end
+
     end
   end
 end
