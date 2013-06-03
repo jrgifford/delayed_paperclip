@@ -112,7 +112,8 @@ This is useful if you don't want the background job to reprocess all styles.
 
 h4. Reprocess Without Delay
 
-This is useful if you don't want the background job.  It accepts individual styles to.
+This is useful if you don't want the background job.  It accepts individual styles to.  Take note, normal `reprocess!` does not accept
+styles as arguments anymore.  It will delegate to DelayedPaperclip and reprocess all styles.
 
 <pre><code>
   class User < ActiveRecord::Base

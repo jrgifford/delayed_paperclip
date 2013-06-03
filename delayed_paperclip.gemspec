@@ -20,7 +20,7 @@ spec = Gem::Specification.new do |s|
 
   s.test_files        = Dir["test/**/*,rb"] + Dir['test/features/*']
 
-  s.add_dependency 'paperclip', [">=3.3.0 "]
+  s.add_dependency 'paperclip', [">= 3.3.0"]
 
   s.add_development_dependency 'mocha'
   s.add_development_dependency 'sqlite3'

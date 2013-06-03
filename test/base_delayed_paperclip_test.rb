@@ -187,31 +187,6 @@ module BaseDelayedPaperclipTest
     process_jobs
   end
 
-  def test_delayed_paperclip_accepts_arguments_with_reprocess!
-    reset_class "Dummy", :with_processed => true
-    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
-    dummy.save!
-    process_jobs
-    dummy.update_attribute(:image_processing, false)
-    dummy.image.reprocess!(:thumbnail)
-    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:thumbnail)
-    process_jobs
-  end
-
-  def test_delayed_paperclip_reverts_only_process_option_after_reprocess!
-    reset_class "Dummy", :with_processed => true, :paperclip => { :only_process => [:original] }
-    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
-    dummy.save!
-    process_jobs
-    dummy.update_attribute(:image_processing, false)
-    dummy.image.reprocess!(:thumbnail)
-    process_jobs
-    dummy.image = File.open("#{RAILS_ROOT}/test/fixtures/12k.png")
-    dummy.save!
-    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:original)
-    process_jobs
-  end
-
   def test_delayed_paperclip_should_convert_image_formats
     reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
@@ -234,5 +209,28 @@ module BaseDelayedPaperclipTest
     assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
   end
 
+  def test_unprocess_image_interpolates_reprocessing_url
+    reset_class "Dummy", :paperclip => { :styles => {:thumbnail => '12x12'} }
+    reset_dummy :processing_image_url => "/images/:style/processing.png"
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    assert dummy.image.url.starts_with?("/images/original/processing.png")
+    assert dummy.image.url(:thumbnail).starts_with?("/images/thumbnail/processing.png")
+    process_jobs
+    dummy.reload
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
+  end
+
+  def test_unprocess_image_accepts_proc_for_reprocessing_url
+    reset_class "Dummy", :paperclip => { :styles => {:thumbnail => '12x12'} }
+    reset_dummy :processing_image_url => lambda { |attachment| attachment.instance.reprocessing_url }
+    Dummy.send(:define_method, :reprocessing_url) { 'done' }
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    assert dummy.image.url.starts_with?("done")
+    process_jobs
+    dummy.reload
+    assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
+  end
 
 end

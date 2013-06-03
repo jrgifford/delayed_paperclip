@@ -5,6 +5,7 @@ require 'active_record'
 require 'logger'
 require 'sqlite3'
 require 'paperclip/railtie'
+require 'debugger'
 
 Paperclip::Railtie.insert
 
@@ -67,6 +68,7 @@ def reset_class(class_name, options)
     def reprocess
       image.reprocess!
     end
+
   end
   klass.reset_column_information
   klass
