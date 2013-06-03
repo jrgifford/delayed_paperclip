@@ -2,24 +2,12 @@ module DelayedPaperclip
   module Attachment
 
     def self.included(base)
-      base.extend(ClassMethods)
       base.send :include, InstanceMethods
       base.send :attr_accessor, :job_is_processing
       base.alias_method_chain :post_processing, :delay
       base.alias_method_chain :post_processing=, :delay
       base.alias_method_chain :save, :prepare_enqueueing
       base.alias_method_chain :after_flush_writes, :processing
-      base.alias_method_chain :reprocess!, :save_options
-    end
-
-    module ClassMethods
-      def save_only_process_option(styles)
-        @saved_only_process = styles
-      end
-
-      def only_process_option
-        @saved_only_process
-      end
     end
 
     module InstanceMethods
@@ -48,20 +36,13 @@ module DelayedPaperclip
         @instance.send(:"#{@name}_processing?")
       end
 
-      # Take direct styles from reprocess!
-      # Use delayed_options if direct argument does not exist
       def process_delayed!
         self.job_is_processing = true
         self.post_processing = true
         reprocess!(*delayed_options[:only_process])
-        reset_only_process unless self.class.only_process_option.nil?
         self.job_is_processing = false
       end
 
-      def reset_only_process
-        @instance.class.attachment_definitions[@name][:delayed][:only_process] = self.class.only_process_option
-        self.class.save_only_process_option(nil)
-      end
 
       def after_flush_writes_with_processing(*args)
         after_flush_writes_without_processing(*args)
@@ -85,16 +66,9 @@ module DelayedPaperclip
         end
       end
 
-      def reprocess_with_save_options!(*style_args)
-
-        unless caller.collect {|c| c[/`([^']*)'/, 1]}.include?("process_delayed!")
-          if delayed_options
-            self.class.save_only_process_option(delayed_options[:only_process])
-            @instance.class.attachment_definitions[@name][:delayed][:only_process] = style_args
-          end
-        end
-
-        reprocess_without_save_options!(*style_args)
+      def reprocess_without_delay!(*style_args)
+        @post_processing_with_delay = true
+        reprocess!(*style_args)
       end
 
     end

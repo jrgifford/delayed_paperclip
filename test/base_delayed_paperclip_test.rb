@@ -187,31 +187,6 @@ module BaseDelayedPaperclipTest
     process_jobs
   end
 
-  def test_delayed_paperclip_accepts_arguments_with_reprocess!
-    reset_class "Dummy", :with_processed => true
-    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
-    dummy.save!
-    process_jobs
-    dummy.update_attribute(:image_processing, false)
-    dummy.image.reprocess!(:thumbnail)
-    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:thumbnail)
-    process_jobs
-  end
-
-  def test_delayed_paperclip_reverts_only_process_option_after_reprocess!
-    reset_class "Dummy", :with_processed => true, :paperclip => { :only_process => [:original] }
-    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
-    dummy.save!
-    process_jobs
-    dummy.update_attribute(:image_processing, false)
-    dummy.image.reprocess!(:thumbnail)
-    process_jobs
-    dummy.image = File.open("#{RAILS_ROOT}/test/fixtures/12k.png")
-    dummy.save!
-    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:original)
-    process_jobs
-  end
-
   def test_delayed_paperclip_should_convert_image_formats
     reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
@@ -220,5 +195,19 @@ module BaseDelayedPaperclipTest
     assert dummy.reload.image.url(:thumbnail).starts_with?("/system/dummies/images/000/000/001/thumbnail/12k.jpg")
     assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
   end
+
+  def test_delayed_paperclip_without_delay
+    reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    existing_jobs_count = jobs_count
+    dummy.update_attribute(:image_processing, false)
+    dummy.image.reprocess_without_delay!(:thumbnail)
+    Paperclip::Attachment.any_instance.expects(:reprocess!).never
+    assert_equal existing_jobs_count, jobs_count
+    assert_equal false, dummy.image_processing?
+    assert File.exists?("#{RAILS_ROOT}/public/system/dummies/images/000/000/001/thumbnail/12k.jpg")
+  end
+
 
 end
