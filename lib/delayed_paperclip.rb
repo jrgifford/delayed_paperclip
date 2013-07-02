@@ -43,6 +43,20 @@ module DelayedPaperclip
     end
   end
 
+  module MongoidGlue
+
+    @@paperclip_glue = nil
+
+    def self.included base #:nodoc:
+      base.extend(ClassMethods)
+      unless @@paperclip_glue
+        Paperclip::Attachment.send(:include, DelayedPaperclip::Attachment)
+        Paperclip::UrlGenerator.send(:include, DelayedPaperclip::UrlGenerator)
+        @@paperclip_glue = true
+      end
+    end
+  end
+
   module ClassMethods
 
     def process_in_background(name, options = {})
@@ -74,9 +88,16 @@ module DelayedPaperclip
     # Then immediately push the state to the database
     def mark_enqueue_delayed_processing
       unless @_enqued_for_processing_with_processing.blank? # catches nil and empty arrays
-        updates = @_enqued_for_processing_with_processing.collect{|n| "#{n}_processing = :true" }.join(", ")
-        updates = ActiveRecord::Base.send(:sanitize_sql_array, [updates, {:true => true}])
-        self.class.where(:id => self.id).update_all(updates)
+        # if Mongoid
+        if defined? ::Mongoid
+          @_enqued_for_processing_with_processing.each do |n|
+            self.set("#{n}_processing", true)
+          end
+        else
+          updates = @_enqued_for_processing_with_processing.collect{|n| "#{n}_processing = :true" }.join(", ")
+          updates = ActiveRecord::Base.send(:sanitize_sql_array, [updates, {:true => true}])
+          self.class.where(:id => self.id).update_all(updates)
+        end
       end
     end
 
@@ -93,7 +114,14 @@ module DelayedPaperclip
     end
 
     def enqueue_post_processing_for name
-      DelayedPaperclip.enqueue(self.class.name, read_attribute(:id), name.to_sym)
+      instance_id = nil
+      if defined? ::Mongoid
+        instance_id = self.id
+      else
+        instance_id = read_attribute(:id)
+      end
+
+      DelayedPaperclip.enqueue(self.class.name, instance_id, name.to_sym)
     end
 
     def prepare_enqueueing_for name

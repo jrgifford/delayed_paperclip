@@ -29,6 +29,8 @@ h2. Usage
 
 In your model:
 
+With ActiveRecord : 
+
 <pre><code>
   class User < ActiveRecord::Base
     has_attached_file :avatar, :styles => { :medium => "300x300>", :thumb => "100x100>" }
@@ -36,6 +38,21 @@ In your model:
     process_in_background :avatar
   end
 </code></pre>
+
+With Mongoid :
+
+<pre><code>
+  class User
+    include Mongoid::Document
+    include Mongoid::Paperclip
+    include DelayedPaperclip::MongoidGlue
+
+    has_attached_file :avatar, :styles => { :medium => "300x300>", :thumb => "100x100>" }
+
+    process_in_background :avatar
+  end
+</code></pre>
+
 
 Use your Paperclip attachment just like always in controllers and views.
 
@@ -55,6 +72,8 @@ In the default setup, when you upload an image for the first time and try to dis
 
 To have the missing image url be outputted by paperclip while the image is being processed, all you need to do is add a #{attachment_name}_processing column to the specific model you want to enable this feature for. This feature gracefully degrades and will not affect models which do not have the column added to them.
 
+With Active Record : 
+
 <pre><code>
   class AddAvatarProessingToUser < ActiveRecord::Migration
     def self.up
@@ -65,7 +84,20 @@ To have the missing image url be outputted by paperclip while the image is being
       remove_column :users, :avatar_processing
     end
   end
+</code></pre>
 
+With Mongoid :
+
+<pre><code>
+  class User
+    [...]
+    field :avatar_processing, type: Boolean
+  end
+</code></pre>
+
+Then you can test it :
+
+<pre><code>
   @user = User.new(:avatar => File.new(...))
   @user.save
   @user.avatar.url #=> "/images/original/missing.png"
