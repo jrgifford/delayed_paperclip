@@ -5,12 +5,19 @@ module DelayedPaperclip
     class DelayedJob < Struct.new(:instance_klass, :instance_id, :attachment_name)
 
       if defined?(::Delayed::DeserializationError) # this is available in newer versions of DelayedJob. Using the newee Job api thus.
-
+        
         def self.enqueue_delayed_paperclip(instance_klass, instance_id, attachment_name)
-          ::Delayed::Job.enqueue(
+          options = {
             :payload_object => new(instance_klass, instance_id, attachment_name),
             :priority => instance_klass.constantize.attachment_definitions[attachment_name][:delayed][:priority].to_i
-          )
+          }
+
+          if defined? Delayed::Worker.default_queue_name
+            # version 3.X
+            options[:queue] = :paperclip
+          end
+          
+          ::Delayed::Job.enqueue(options)
         end
 
       else
