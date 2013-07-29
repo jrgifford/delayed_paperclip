@@ -10,12 +10,12 @@ describe DelayedPaperclip::ClassMethods do
   describe ".process_in_background" do
 
     it "is empty to start" do
-      Dummy.attachment_definitions.should == { :image => {} }
+      Dummy.paperclip_definitions.should == { :image => {} }
     end
 
-    it "adds basics to attachment_definitions" do
+    it "adds basics to paperclip_definitions" do
       Dummy.process_in_background(:image)
-      Dummy.attachment_definitions.should == { :image => {
+      Dummy.paperclip_definitions.should == { :image => {
         :delayed => {
           :priority => 0,
           :only_process => nil,
@@ -31,7 +31,7 @@ describe DelayedPaperclip::ClassMethods do
       end
 
       it "incorporates processing url" do
-        Dummy.attachment_definitions.should == { :image => {
+        Dummy.paperclip_definitions.should == { :image => {
           :delayed => {
             :priority => 0,
             :only_process => nil,
@@ -49,7 +49,7 @@ describe DelayedPaperclip::ClassMethods do
       end
 
       it "incorporates processing url" do
-        Dummy.attachment_definitions.should == { :image => {
+        Dummy.paperclip_definitions.should == { :image => {
           :only_process => [:small, :large],
           :delayed => {
             :priority => 0,

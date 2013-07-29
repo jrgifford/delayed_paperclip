@@ -48,17 +48,17 @@ module DelayedPaperclip
 
     def process_in_background(name, options = {})
       # initialize as hash
-      attachment_definitions[name][:delayed] = {}
+      paperclip_definitions[name][:delayed] = {}
 
       # Set Defaults
       {
         :priority => 0,
-        :only_process => attachment_definitions[name][:only_process],
+        :only_process => paperclip_definitions[name][:only_process],
         :url_with_processing => DelayedPaperclip.options[:url_with_processing],
         :processing_image_url => options[:processing_image_url]
       }.each do |option, default|
 
-        attachment_definitions[name][:delayed][option] = options.key?(option) ? options[option] : default
+        paperclip_definitions[name][:delayed][option] = options.key?(option) ? options[option] : default
 
       end
 
@@ -67,6 +67,14 @@ module DelayedPaperclip
         after_commit  :enqueue_delayed_processing
       else
         after_save    :enqueue_delayed_processing
+      end
+    end
+
+    def paperclip_definitions
+      @paperclip_definitions ||= if respond_to? :attachment_definitions
+        attachment_definitions
+      else
+        Paperclip::Tasks::Attachments.definitions_for(self)
       end
     end
   end

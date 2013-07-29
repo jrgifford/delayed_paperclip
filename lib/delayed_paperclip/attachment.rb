@@ -13,7 +13,7 @@ module DelayedPaperclip
     module InstanceMethods
 
       def delayed_options
-        @instance.class.attachment_definitions[@name][:delayed]
+        @instance.class.paperclip_definitions[@name][:delayed]
       end
 
       # Attr accessor in Paperclip
