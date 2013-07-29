@@ -156,7 +156,7 @@ module BaseDelayedPaperclipTest
   def test_after_callback_is_functional
     Dummy.send(:define_method, :done_processing) { puts 'done' }
     Dummy.after_image_post_process :done_processing
-    Dummy.any_instance.expects(:done_processing)
+    Dummy.any_instance.expects(:done_processing).once
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
     process_jobs
@@ -164,11 +164,10 @@ module BaseDelayedPaperclipTest
 
   def test_delayed_paperclip_functioning_with_after_update_callback
     reset_class "Dummy", :with_processed => true, :with_after_update_callback => true
-    Dummy.any_instance.expects(:reprocess)
+    Dummy.any_instance.expects(:reprocess).once
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
     process_jobs
-    dummy.name = "foobar123"
   end
 
   def test_delayed_paperclip_functioning_with_only_process_option
@@ -200,6 +199,7 @@ module BaseDelayedPaperclipTest
     reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
     dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
     dummy.save!
+
     existing_jobs_count = jobs_count
     dummy.update_attribute(:image_processing, false)
     dummy.image.reprocess_without_delay!(:thumbnail)

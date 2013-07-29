@@ -1,9 +1,8 @@
 language: ruby
 rvm:
-  - 1.9.2
   - 2.0.0
-  - rbx-19mode
   - 1.9.3
+  - rbx-19mode
 
 matrix:
   allow_failures:
@@ -12,12 +11,13 @@ matrix:
 services:
   - redis
 
-script: "bundle exec rake clean test"
+script:
+- bundle exec rake clean test spec
 
 notifications:
   email:
     - james@jamesrgifford.com
-
+    - scott@artsicle.com
 
 gemfile:
   - gemfiles/rails3.gemfile

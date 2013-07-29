@@ -38,17 +38,19 @@ module DelayedPaperclip
   end
 
   module Glue
-    def self.included base #:nodoc:
+    def self.included(base)
       base.extend(ClassMethods)
+      base.send :include, InstanceMethods
     end
   end
 
   module ClassMethods
 
     def process_in_background(name, options = {})
-      include InstanceMethods
-
+      # initialize as hash
       attachment_definitions[name][:delayed] = {}
+
+      # Set Defaults
       {
         :priority => 0,
         :only_process => attachment_definitions[name][:only_process],
@@ -60,15 +62,28 @@ module DelayedPaperclip
 
       end
 
+      # Sets callback
       if respond_to?(:after_commit)
         after_commit  :enqueue_delayed_processing
       else
-        after_save  :enqueue_delayed_processing
+        after_save    :enqueue_delayed_processing
       end
     end
   end
 
   module InstanceMethods
+
+    # First mark processing
+    # then enqueue
+    def enqueue_delayed_processing
+      mark_enqueue_delayed_processing
+
+      (@_enqued_for_processing || []).each do |name|
+        enqueue_post_processing_for(name)
+      end
+      @_enqued_for_processing_with_processing = []
+      @_enqued_for_processing = []
+    end
 
     # setting each inididual NAME_processing to true, skipping the ActiveModel dirty setter
     # Then immediately push the state to the database
@@ -78,18 +93,6 @@ module DelayedPaperclip
         updates = ActiveRecord::Base.send(:sanitize_sql_array, [updates, {:true => true}])
         self.class.where(:id => self.id).update_all(updates)
       end
-    end
-
-    # First mark processing
-    # then create
-    def enqueue_delayed_processing
-      mark_enqueue_delayed_processing
-
-      (@_enqued_for_processing || []).each do |name|
-        enqueue_post_processing_for(name)
-      end
-      @_enqued_for_processing_with_processing = []
-      @_enqued_for_processing = []
     end
 
     def enqueue_post_processing_for name

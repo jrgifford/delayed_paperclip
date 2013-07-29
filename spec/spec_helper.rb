@@ -1,34 +1,38 @@
-require 'rubygems'
-require 'test/unit'
-require 'mocha/setup'
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
+
+require 'rails'
 require 'active_record'
-require 'logger'
-require 'sqlite3'
+require 'rspec'
+require 'mocha/api'
+
 require 'paperclip/railtie'
-
 Paperclip::Railtie.insert
-
-ROOT       = File.join(File.dirname(__FILE__), '..')
-RAILS_ROOT = ROOT
-$LOAD_PATH << File.join(ROOT, 'lib')
 
 require 'delayed_paperclip/railtie'
 DelayedPaperclip::Railtie.insert
 
-class Test::Unit::TestCase
-  def setup
-    silence_warnings do
-      Object.const_set(:Rails, stub('Rails', :root => ROOT, :env => 'test'))
-    end
-  end
-end
+# Connect to sqlite
+ActiveRecord::Base.establish_connection(
+  "adapter" => "sqlite3",
+  "database" => ":memory:"
+)
+
+# Path for filesystem writing
+ROOT = Pathname(File.expand_path(File.join(File.dirname(__FILE__), '..')))
 
 FIXTURES_DIR = File.join(File.dirname(__FILE__), "fixtures")
-config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
 ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
-ActiveRecord::Base.establish_connection(config['test'])
 Paperclip.logger = ActiveRecord::Base.logger
 
+RSpec.configure do |config|
+  config.mock_with :mocha
+
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
+end
+
+Dir["./spec/integration/examples/*.rb"].sort.each {|f| require f}
 
 # Reset table and class with image_processing column or not
 def reset_dummy(options = {})
@@ -49,7 +53,6 @@ def build_dummy_table(with_processed)
     t.boolean(:image_processing, :default => false) if with_processed
   end
 end
-
 
 def reset_class(class_name, options)
   # setup class and include paperclip
@@ -77,6 +80,7 @@ def reset_class(class_name, options)
 
   end
 
+  Rails.stubs(:root).returns(Pathname.new(ROOT).join('spec', 'tmp'))
   klass.reset_column_information
   klass
 end
