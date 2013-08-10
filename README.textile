@@ -1,6 +1,6 @@
 h1. Delayed::Paperclip !https://travis-ci.org/jrgifford/delayed_paperclip.png?branch=master!:https://travis-ci.org/jrgifford/delayed_paperclip "!https://codeclimate.com/github/jrgifford/delayed_paperclip.png!":https://codeclimate.com/github/jrgifford/delayed_paperclip
 
-Delayed_paperclip lets you process your "Paperclip":http://github.com/thoughtbot/paperclip attachments in a background task with "delayed_job":http://github.com/tobi/delayed_job or "Resque":http://github.com/defunkt/resque.
+Delayed_paperclip lets you process your "Paperclip":http://github.com/thoughtbot/paperclip attachments in a background task with "delayed_job":http://github.com/tobi/delayed_job, "Resque":http://github.com/defunkt/resque or "Sidekiq":http://github.com/mperham/sidekiq.
 
 h2. Why?
 
@@ -23,7 +23,7 @@ gem 'delayed_paperclip'
 
 Dependencies:
 * Paperclip
-* DJ or Resque
+* DJ, Resque or Sidekiq
 
 h2. Usage
 
@@ -48,6 +48,10 @@ Make sure that you have "Resque":http://github.com/defunkt/resque up and running
 h3. DJ
 
 Just make sure that you have DJ up and running.
+
+h3. Sidekiq
+
+Make sure that "Sidekiq":http://github.com/mperham/sidekiq is running and listening to the <code>paperclip</code> queue, either by adding it to your <code>sidekiq.yml</code> config file under <code>- queues:</code> or by passing the command line argument <code>-q paperclip</code> to Sidekiq.
 
 h3. Displaying images during processing
 
