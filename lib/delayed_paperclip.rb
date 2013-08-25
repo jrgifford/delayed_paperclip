@@ -30,9 +30,11 @@ module DelayedPaperclip
     end
 
     def process_job(instance_klass, instance_id, attachment_name)
-      instance_klass.constantize.find(instance_id).
-        send(attachment_name).
-        process_delayed!
+      instance = instance_klass.constantize.find(instance_id)
+      instance.send(attachment_name).process_delayed!
+        
+      instance.send("#{attachment_name}_processing=", false)
+      instance.class.where(instance.class.primary_key => instance.id).update_all({ "#{attachment_name}_processing" => false })
     end
 
   end
