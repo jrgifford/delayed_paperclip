@@ -54,6 +54,10 @@ module DelayedPaperclip
         attachment_definitions[name][:delayed][option] = options.key?(option) ? options[option] : default
       end
 
+      if options.has_key? :only_process
+        attachment_definitions[name][:only_process] = options[:only_process]
+      end
+
       if respond_to?(:after_commit)
         after_commit  :enqueue_delayed_processing
       else

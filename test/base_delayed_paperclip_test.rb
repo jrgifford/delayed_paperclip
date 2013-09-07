@@ -147,4 +147,13 @@ module BaseDelayedPaperclipTest
     dummy.update_attributes(:name => "hi")
   end
 
+  def test_only_process_is_passed_to_paperclip
+    reset_dummy :paperclip => { 
+                  :styles => { :foo => "12x12", :bar => "10x10" } 
+                }, 
+                :only_process => [:foo]
+
+    assert Dummy.attachment_definitions[:image].has_key? :only_process
+    assert_equal [:foo], Dummy.attachment_definitions[:image][:only_process]
+  end
 end
