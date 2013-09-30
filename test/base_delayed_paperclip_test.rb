@@ -247,4 +247,42 @@ module BaseDelayedPaperclipTest
     assert dummy.image.url.starts_with?("/system/dummies/images/000/000/001/original/12k.png")
   end
 
+  def test_model_with_multiple_attachments_doesnt_mark_all_done_processing_when_just_one_is_done
+    ActiveRecord::Base.connection.create_table :alt_dummies, :force => true do |t|
+      t.string   :name
+
+      t.string   :image_file_name
+      t.string   :image_content_type
+      t.integer  :image_file_size
+      t.datetime :image_updated_at
+      t.boolean  :image_processing, :default => false
+
+      t.string   :alt_image_file_name
+      t.string   :alt_image_content_type
+      t.integer  :alt_image_file_size
+      t.datetime :alt_image_updated_at
+      t.boolean  :alt_image_processing, :default => false
+    end
+
+    reset_class("AltDummy", {with_processed: true})
+
+    AltDummy.class_eval do
+      has_attached_file :alt_image
+      process_in_background :alt_image
+    end
+
+    alt_dummy = AltDummy.new(
+      image:     File.open("#{ROOT}/test/fixtures/12k.png"),
+      alt_image: File.open("#{ROOT}/test/fixtures/12k.png")
+    )
+
+    assert !alt_dummy.image_processing?
+    assert !alt_dummy.alt_image_processing?
+    assert alt_dummy.save
+
+    alt_dummy.image_processing = false
+    assert alt_dummy.save
+    assert !alt_dummy.image_processing?
+    assert alt_dummy.alt_image_processing?
+  end
 end
