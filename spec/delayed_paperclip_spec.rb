@@ -31,7 +31,9 @@ describe DelayedPaperclip do
     let(:dummy) { Dummy.create! }
 
     it "finds dummy and calls #process_delayed!" do
-      Dummy.expects(:find).with(dummy.id).returns(dummy)
+      dummy_stub = stub
+      dummy_stub.expects(:find).with(dummy.id).returns(dummy)
+      Dummy.expects(:unscoped).returns(dummy_stub)
       dummy.image.expects(:process_delayed!)
       DelayedPaperclip.process_job("Dummy", dummy.id, :image)
     end
