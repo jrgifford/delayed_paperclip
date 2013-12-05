@@ -185,6 +185,15 @@ module BaseDelayedPaperclipTest
     dummy.save!
     process_jobs
   end
+  
+  def test_delayed_paperclip_functioning_with_only_process_and_paperclip_only_process_option
+    reset_class "Dummy", :with_processed => true, :only_process => [:small], :paperclip => { :only_process => [:thumbnail] }
+    Paperclip::Attachment.any_instance.expects(:post_process).with(:thumbnail)
+    Paperclip::Attachment.any_instance.expects(:reprocess!).with(:small)
+    dummy = Dummy.new(:image => File.open("#{RAILS_ROOT}/test/fixtures/12k.png"))
+    dummy.save!
+    process_jobs
+  end
 
   def test_delayed_paperclip_should_convert_image_formats
     reset_class "Dummy", :with_processed => true, :paperclip => { :styles => {:thumbnail => ['12x12', :jpg]} }
