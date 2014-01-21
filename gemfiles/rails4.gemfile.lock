@@ -69,7 +69,10 @@ GEM
       activesupport (>= 3.0.0)
       cocaine (~> 0.5.3)
       mime-types
+    pg (0.17.1)
     polyglot (0.3.4)
+    queue_classic (2.2.3)
+      pg (~> 0.17.0)
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
@@ -148,6 +151,7 @@ DEPENDENCIES
   delayed_job_active_record
   delayed_paperclip!
   mocha
+  queue_classic
   rails (~> 4.0.3)
   railties
   rake
