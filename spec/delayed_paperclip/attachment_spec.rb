@@ -167,12 +167,38 @@ describe DelayedPaperclip::Attachment do
   end
 
   describe "#after_flush_writes_with_processing" do
-    it "updates the column to false" do
-      dummy.update_attribute(:image_processing, true)
+    context "when corresponding updated_at column not also updated" do
+      it "does not update the column" do
+        dummy.update_attributes(image_processing: true)
 
-      dummy.image.after_flush_writes_with_processing
+        dummy.image.after_flush_writes_with_processing
 
-      dummy.image_processing.should be_false
+        dummy.image_processing.should_not be_false
+      end
+    end
+
+    context "when corresponding updated_at column also updated" do
+      it "updates the column to false" do
+        dummy.update_attributes(image_processing: true, image_updated_at: Time.now)
+
+        dummy.image.after_flush_writes_with_processing
+
+        dummy.image_processing.should be_false
+      end
+    end
+
+    context "on a model with multiple attachments" do
+      before :each do
+        reset_dummy(multiple_attachments: true)
+      end
+
+      it "doesn't update all attachments as done when only one is" do
+        dummy.update_attributes(image_processing: true, image_updated_at: Time.now, alt_image_processing: true)
+
+        dummy.image.after_flush_writes_with_processing
+
+        dummy.alt_image_processing.should be_true
+      end
     end
 
     it "still flushes temp files" do
