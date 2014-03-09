@@ -46,13 +46,13 @@ Dir["./spec/integration/examples/*.rb"].sort.each {|f| require f}
 def reset_dummy(options = {})
   options[:with_processed] = true unless options.key?(:with_processed)
   options[:processed_column] = options[:with_processed] unless options.has_key?(:processed_column)
-  build_dummy_table(options.delete(:processed_column))
+  build_dummy_table(options.delete(:processed_column), options[:multiple_attachments])
   reset_class("Dummy", options)
 end
 
 # Dummy Table for images
 # with or without image_processing column
-def build_dummy_table(with_column)
+def build_dummy_table(with_column, multiple_attachments = false)
   ActiveRecord::Base.connection.create_table :dummies, :force => true do |t|
     t.string   :name
     t.string   :image_file_name
@@ -60,6 +60,14 @@ def build_dummy_table(with_column)
     t.integer  :image_file_size
     t.datetime :image_updated_at
     t.boolean(:image_processing, :default => false) if with_column
+
+    if multiple_attachments
+      t.string   :alt_image_file_name
+      t.string   :alt_image_content_type
+      t.integer  :alt_image_file_size
+      t.datetime :alt_image_updated_at
+      t.boolean(:alt_image_processing, :default => false) if with_column
+    end
   end
 end
 
@@ -77,6 +85,7 @@ def reset_class(class_name, options)
     include Paperclip::Glue
 
     has_attached_file :image, options[:paperclip]
+    (has_attached_file :alt_image, options[:paperclip]) if options[:multiple_attachments]
     options.delete(:paperclip)
 
     validates_attachment :image, :content_type => { :content_type => "image/png" }
