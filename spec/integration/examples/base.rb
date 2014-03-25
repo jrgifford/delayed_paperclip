@@ -128,6 +128,16 @@ shared_examples "base usage" do
     end
   end
 
+  describe "processing is not changed after multiple saves" do
+    it do
+      dummy.save!
+      dummy.reload.image_processing?.should be_true
+      dummy.save!
+      dummy.reload.image_processing?.should be_true
+    end
+  end
+
+
   describe "urls" do
     it "returns missing url until job is finished" do
       dummy.save!

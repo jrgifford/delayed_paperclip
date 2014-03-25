@@ -7,7 +7,7 @@ module DelayedPaperclip
       base.alias_method_chain :post_processing, :delay
       base.alias_method_chain :post_processing=, :delay
       base.alias_method_chain :save, :prepare_enqueueing
-      base.alias_method_chain :after_flush_writes, :processing
+      base.alias_method_chain :reprocess!, :processing_flag
     end
 
     module InstanceMethods
@@ -65,18 +65,6 @@ module DelayedPaperclip
         processing_image_url
       end
 
-      # Updates _processing column to false
-      def after_flush_writes_with_processing(*args)
-        after_flush_writes_without_processing(*args)
-        # update_column is available in rails 3.1 instead we can do this to update the attribute without callbacks
-
-        # instance.update_column("#{name}_processing", false) if instance.respond_to?(:"#{name}_processing?")
-        if instance.respond_to?(:"#{name}_processing?")
-          instance.send("#{name}_processing=", false)
-          instance.class.where(instance.class.primary_key => instance.id).update_all({ "#{name}_processing" => false })
-        end
-      end
-
       def save_with_prepare_enqueueing
         was_dirty = @dirty
 
@@ -92,6 +80,12 @@ module DelayedPaperclip
         reprocess!(*style_args)
       end
 
+      def reprocess_with_processing_flag!(*args)
+        if @instance.respond_to?("#{@name}_processing=")
+          @instance.send("#{@name}_processing=", false)
+        end
+        reprocess_without_processing_flag! *args
+      end
     end
   end
 end
