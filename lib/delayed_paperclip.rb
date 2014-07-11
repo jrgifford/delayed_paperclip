@@ -100,7 +100,7 @@ module DelayedPaperclip
     # Then immediately push the state to the database
     def mark_enqueue_delayed_processing
       unless @_enqued_for_processing_with_processing.blank? # catches nil and empty arrays
-        updates = Hash[@_enqued_for_processing_with_processing.map{|a| [a, true]}]
+        updates = Hash[@_enqued_for_processing_with_processing.map{|a| ["#{a}_processing", true]}]
         self.class.where(:id => self.id).update_all(updates)
       end
     end
