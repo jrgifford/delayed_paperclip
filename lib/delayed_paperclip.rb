@@ -107,7 +107,7 @@ module DelayedPaperclip
     end
 
     def enqueue_post_processing_for name
-      DelayedPaperclip.enqueue(self.class.name, read_attribute(:id), name.to_sym)
+      DelayedPaperclip.enqueue(self.class.name, read_attribute(:id).to_s, name.to_sym)
     end
 
     def prepare_enqueueing_for name
