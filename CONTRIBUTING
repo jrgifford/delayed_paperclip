@@ -10,6 +10,7 @@ Please don't commit code without tests. You can bootstrap the development enviro
 
 Dependencies for Testing:
   - Redis. You need redis. For linux users, you can install the redis-server package and roll, Mac users will need to install it with homebrew, and I'm not entirely sure how to make it work with Windows users.
+  - PostgreSQL. Make sure to provide a valid database URL with QC_DATABASE_URL="postgres://username:pass@localhost/queue_classic_test" and initialize the database with ruby -r queue_classic -e "QC::Setup.create".
 
 Versioning
 =========
