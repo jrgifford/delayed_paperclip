@@ -10,13 +10,13 @@ describe DelayedPaperclip::UrlGenerator do
   let(:attachment) { dummy.image }
   let(:dummy_options) { {} }
 
-  describe "for_with_processed" do
+  describe "for" do
     before do
       attachment.stubs(:original_filename).returns "12k.png"
     end
 
     context "with split processing" do
-      # everything in this hash is passed to delayed_paperclip, expect for the
+      # everything in this hash is passed to delayed_paperclip, except for the
       # paperclip stuff
       let(:dummy_options) { {
         paperclip: {
@@ -60,9 +60,9 @@ describe DelayedPaperclip::UrlGenerator do
     end
   end
 
-  describe "#most_appropriate_url_with_processed" do
+  describe "#most_appropriate_url" do
     context "without delayed_default_url" do
-      subject { Paperclip::UrlGenerator.new(attachment, {url: "/blah/url.jpg"})}
+      subject { DelayedPaperclip::UrlGenerator.new(attachment, {url: "/blah/url.jpg"})}
 
       before :each do
         subject.stubs(:delayed_default_url?).returns false
@@ -73,7 +73,7 @@ describe DelayedPaperclip::UrlGenerator do
         end
 
         it "returns options url" do
-          subject.most_appropriate_url_with_processed.should == "/blah/url.jpg"
+          subject.most_appropriate_url.should == "/blah/url.jpg"
         end
       end
 
@@ -89,7 +89,7 @@ describe DelayedPaperclip::UrlGenerator do
 
           it "gets default url" do
             subject.expects(:default_url)
-            subject.most_appropriate_url_with_processed
+            subject.most_appropriate_url
           end
         end
 
@@ -105,7 +105,7 @@ describe DelayedPaperclip::UrlGenerator do
 
             it "gets default url" do
               subject.expects(:default_url)
-              subject.most_appropriate_url_with_processed
+              subject.most_appropriate_url
             end
           end
 
@@ -120,14 +120,14 @@ describe DelayedPaperclip::UrlGenerator do
               end
 
               it "gets processing url" do
-                subject.most_appropriate_url_with_processed.should == "/processing/image.jpg"
+                subject.most_appropriate_url.should == "/processing/image.jpg"
               end
             end
 
             context "and is not processing" do
               it "gets default url" do
                 subject.expects(:default_url)
-                subject.most_appropriate_url_with_processed
+                subject.most_appropriate_url
               end
             end
           end
@@ -136,8 +136,8 @@ describe DelayedPaperclip::UrlGenerator do
     end
   end
 
-  describe "#timestamp_possible_with_processed?" do
-    subject { Paperclip::UrlGenerator.new(attachment, {})}
+  describe "#timestamp_possible?" do
+    subject { DelayedPaperclip::UrlGenerator.new(attachment, {})}
 
     context "with delayed_default_url" do
       before :each do
@@ -145,7 +145,7 @@ describe DelayedPaperclip::UrlGenerator do
       end
 
       it "is false" do
-        subject.timestamp_possible_with_processed?.should be_false
+        subject.timestamp_possible?.should be_false
       end
     end
 
@@ -156,13 +156,13 @@ describe DelayedPaperclip::UrlGenerator do
 
       it "goes up the chain" do
         subject.expects(:timestamp_possible_without_processed?)
-        subject.timestamp_possible_with_processed?
+        subject.timestamp_possible?
       end
     end
   end
 
   describe "#delayed_default_url?" do
-    subject { Paperclip::UrlGenerator.new(attachment, {})}
+    subject { DelayedPaperclip::UrlGenerator.new(attachment, {})}
 
     before :each do
       attachment.stubs(:job_is_processing).returns false

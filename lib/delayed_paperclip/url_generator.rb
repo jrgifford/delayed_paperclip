@@ -1,45 +1,31 @@
 require 'uri'
+require 'paperclip/url_generator'
 
 module DelayedPaperclip
-  module UrlGenerator
-    def self.included(base)
-      base.alias_method_chain :most_appropriate_url, :processed
-      base.alias_method_chain :timestamp_possible?, :processed
-      base.alias_method_chain :for, :processed
-    end
-
-    def for_with_processed(style_name, options)
-      most_appropriate_url = @attachment.processing_style?(style_name) ? most_appropriate_url(style_name) : most_appropriate_url_without_processed
-
-      escape_url_as_needed(
-        timestamp_as_needed(
-          @attachment_options[:interpolator].interpolate(most_appropriate_url, @attachment, style_name),
-          options
-      ), options)
-    end
-
+  class UrlGenerator < ::Paperclip::UrlGenerator
     # This method is a mess
-    def most_appropriate_url_with_processed(style = nil)
-      if @attachment.original_filename.nil? || delayed_default_url?(style)
-        if @attachment.delayed_options.nil? ||
-           @attachment.processing_image_url.nil? ||
-           !@attachment.processing?
+    def most_appropriate_url(style = nil)
+      if @attachment.processing_style?(style)
+        if @attachment.original_filename.nil? || delayed_default_url?(style)
 
-          default_url
+          if @attachment.delayed_options.nil? ||
+            @attachment.processing_image_url.nil? ||
+            !@attachment.processing?
+            default_url
+          else
+            @attachment.processing_image_url
+          end
+
         else
-          @attachment.processing_image_url
+          @attachment_options[:url]
         end
       else
-        @attachment_options[:url]
+        super()
       end
     end
 
-    def timestamp_possible_with_processed?
-      if delayed_default_url?
-        false
-      else
-        timestamp_possible_without_processed?
-      end
+    def timestamp_possible?
+      delayed_default_url? ? false : super
     end
 
     def delayed_default_url?(style = nil)
@@ -54,9 +40,7 @@ module DelayedPaperclip
 
     def processing?(style)
       return true if @attachment.processing?
-
       return @attachment.processing_style?(style) if style
     end
   end
-
 end
