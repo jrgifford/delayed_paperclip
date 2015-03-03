@@ -1,5 +1,6 @@
 require 'delayed_paperclip/jobs'
 require 'delayed_paperclip/attachment'
+require 'delayed_paperclip/storage'
 require 'delayed_paperclip/url_generator'
 require 'delayed_paperclip/railtie'
 

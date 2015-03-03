@@ -4,12 +4,22 @@ module DelayedPaperclip
     def self.included(base)
       base.send :include, InstanceMethods
       base.send :attr_accessor, :job_is_processing
+      base.alias_method_chain :initialize, :delay
       base.alias_method_chain :post_processing, :delay
       base.alias_method_chain :post_processing=, :delay
       base.alias_method_chain :save, :prepare_enqueueing
     end
 
     module InstanceMethods
+
+      def initialize_with_delay(*args)
+        initialize_without_delay(*args)
+
+         # Extend our storage module after Paperclip extends their storage
+         # module so we can add some functionality to the #exists? method for
+         # all storages and still super to their original implementation.
+        self.extend Storage
+      end
 
       def delayed_options
         options[:delayed]
