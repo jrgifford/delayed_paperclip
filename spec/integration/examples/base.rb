@@ -312,5 +312,74 @@ shared_examples "base usage" do
     end
   end
 
+  describe 'destroying the model' do
+     it 'deletes all styles when not processing' do
+       reset_class "Dummy", with_processed: true,
+                            paperclip: {
+                              styles: {
+                                thumbnail: '12x12'
+                              }
+                            }
+
+        dummy.save!
+        process_jobs
+
+        dummy.reload
+
+        expect(dummy.image.url(:original)).to start_with("/system/dummies/images/000/000/001/original/12k.png")
+        expect(dummy.image.exists?(:original)).to be_truthy
+        expect(dummy.image.url(:thumbnail)).to start_with("/system/dummies/images/000/000/001/thumbnail/12k.png")
+        expect(dummy.image.exists?(:thumbnail)).to be_truthy
+
+        dummy.destroy!
+
+        expect(dummy.image.exists?(:original)).to be_falsey
+        expect(dummy.image.exists?(:thumbnail)).to be_falsey
+     end
+
+     it 'deletes only the non-delayed styles when processing' do
+      # Copy the processing image into the public folder
+      FileUtils.mkdir_p(Pathname.new(ROOT).join('spec', 'tmp', 'public', 'images'))
+      FileUtils.cp(
+        Pathname.new(ROOT).join('spec', 'fixtures', 'processing.gif'),
+        Pathname.new(ROOT).join('spec', 'tmp', 'public', 'images')
+      )
+
+       reset_class "Dummy", with_processed: true,
+                            only_process: [:thumbnail],
+                            processing_image_url: '/images/processing.gif',
+                            paperclip: {
+                              styles: {
+                                thumbnail: '12x12'
+                              },
+                              only_process: [:original]
+                            }
+
+        dummy.save!
+
+        dummy.reload
+
+        original_path = dummy.image.path(:original)
+        thumbnail_path = dummy.image.path(:thumbnail)
+
+        expect(original_path).to include("/system/dummies/images/000/000/001/original/12k.png")
+        expect(thumbnail_path).to include("/images/processing.gif")
+
+        expect(File.exist?(original_path)).to be_truthy
+        expect(File.exist?(thumbnail_path)).to be_truthy
+
+        expect(dummy.image.exists?(:original)).to be_truthy
+        expect(dummy.image.exists?(:thumbnail)).to be_falsey
+
+        dummy.destroy!
+
+        expect(dummy.image.exists?(:original)).to be_falsey
+        expect(dummy.image.exists?(:thumbnail)).to be_falsey
+
+        expect(File.exist?(original_path)).to be_falsey
+        expect(File.exist?(thumbnail_path)).to be_truthy
+     end
+  end
+
 end
 
