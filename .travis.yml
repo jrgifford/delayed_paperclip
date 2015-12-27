@@ -1,6 +1,9 @@
+sudo: false
 language: ruby
 
 rvm:
+  - 2.3.0
+  - 2.2
   - 2.1
   - 2.0
 
@@ -8,8 +11,7 @@ gemfile:
   - gemfiles/3.2.gemfile
   - gemfiles/4.0.gemfile
   - gemfiles/4.1.gemfile
-
-sudo: false
+  - gemfiles/4.2.gemfile
 
 services:
   - redis
