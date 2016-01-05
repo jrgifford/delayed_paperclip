@@ -56,7 +56,13 @@ describe DelayedPaperclip do
 
   describe "paperclip definitions" do
     before :each do
+      DelayedPaperclip.options[:queue] = "bar"
       reset_dummy :paperclip => { styles: { thumbnail: "25x25"} }
+    end
+
+    after :each do
+      DelayedPaperclip.options[:queue] = nil
+      reset_dummy
     end
 
     it "returns paperclip options regardless of version" do
@@ -65,7 +71,7 @@ describe DelayedPaperclip do
                                                             :only_process => [],
                                                             :url_with_processing => true,
                                                             :processing_image_url => nil,
-                                                            :queue => nil}
+                                                            :queue => "bar"}
                                                           }
                                               }
     end
