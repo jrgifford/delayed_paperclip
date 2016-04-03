@@ -15,6 +15,36 @@ describe "Delayed Job" do
     include_examples "base usage"
   end
 
+  describe "delayed_job default queue name" do
+    before :all do
+      Delayed::Worker.default_queue_name = "foo"
+      reset_dummy
+    end
+
+    after :all do
+      Delayed::Worker.default_queue_name = nil
+      reset_dummy
+    end
+
+    it "should be used when not overridden" do
+      ::Delayed::Job.expects(:enqueue).with do |params|
+        params[:queue].should == "foo"
+      end
+      dummy.image = File.open("#{ROOT}/spec/fixtures/12k.png")
+      dummy.save!
+    end
+
+    it "should not be used if overridden" do
+      DelayedPaperclip.options[:queue] = "bar"
+      reset_dummy
+      ::Delayed::Job.expects(:enqueue).with do |params|
+        params[:queue].should == "bar"
+      end
+      dummy.image = File.open("#{ROOT}/spec/fixtures/12k.png")
+      dummy.save!
+    end
+  end
+
   describe "perform job" do
     before :each do
       DelayedPaperclip.options[:url_with_processing] = true
@@ -39,15 +69,15 @@ describe "Delayed Job" do
 
   def build_delayed_jobs
     ActiveRecord::Base.connection.create_table :delayed_jobs, :force => true do |table|
-      table.integer  :priority, :default => 0      # Allows some jobs to jump to the front of the queue
-      table.integer  :attempts, :default => 0      # Provides for retries, but still fail eventually.
-      table.text     :handler                      # YAML-encoded string of the object that will do work
-      table.string   :last_error                   # reason for last failure (See Note below)
-      table.datetime :run_at                       # When to run. Could be Time.now for immediately, or sometime in the future.
-      table.datetime :locked_at                    # Set when a client is working on this object
-      table.datetime :failed_at                    # Set when all retries have failed (actually, by default, the record is deleted instead)
-      table.string   :locked_by                    # Who is working on this object (if locked)
-      table.string   :queue
+      table.integer   :priority,  :default => 0   # Allows some jobs to jump to the front of the queue
+      table.integer   :attempts,  :default => 0   # Provides for retries, but still fail eventually.
+      table.text      :handler                    # YAML-encoded string of the object that will do work
+      table.string    :last_error                 # reason for last failure (See Note below)
+      table.datetime  :run_at                     # When to run. Could be Time.now for immediately, or sometime in the future.
+      table.datetime  :locked_at                  # Set when a client is working on this object
+      table.datetime  :failed_at                  # Set when all retries have failed (actually, by default, the record is deleted instead)
+      table.string    :locked_by                  # Who is working on this object (if locked)
+      table.string    :queue
       table.timestamps null: true
     end
   end

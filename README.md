@@ -266,7 +266,8 @@ module YourApp
 
     config.delayed_paperclip_defaults = {
         url_with_processing: true,
-        processing_image_url: 'custom_processing.png'
+        processing_image_url: 'custom_processing.png',
+        queue: 'foo'
     }
   end
 end

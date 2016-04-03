@@ -10,7 +10,7 @@ module DelayedPaperclip
           ::Delayed::Job.enqueue(
             :payload_object => new(instance_klass, instance_id, attachment_name),
             :priority => instance_klass.constantize.paperclip_definitions[attachment_name][:delayed][:priority].to_i,
-            :queue => instance_klass.constantize.paperclip_definitions[attachment_name][:delayed][:queue]
+            :queue => instance_klass.constantize.paperclip_definitions[attachment_name][:delayed][:queue] || Delayed::Worker.default_queue_name
           )
         end
 
