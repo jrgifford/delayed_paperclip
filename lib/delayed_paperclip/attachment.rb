@@ -48,11 +48,14 @@ module DelayedPaperclip
     end
 
     def process_delayed!
+      run_callback :pre_processing_callback
       self.job_is_processing = true
       self.post_processing = true
       reprocess!(*delayed_only_process)
+      run_callback :post_processing_callback
       self.job_is_processing = false
       update_processing_column
+      run_callback :post_update_callback
     end
 
     def processing_image_url
@@ -82,6 +85,25 @@ module DelayedPaperclip
       if instance.respond_to?(:"#{name}_processing?")
         instance.send("#{name}_processing=", false)
         instance.class.where(instance.class.primary_key => instance.id).update_all({ "#{name}_processing" => false })
+      end
+    end
+
+    def run_callback(callback_name)
+      execute_callback delayed_options[callback_name]
+    end
+
+    def execute_callback(callback)
+      case callback
+        when Proc
+          callback.call self
+        when Symbol, String
+          method = instance.method callback
+          arity = method.arity
+          if arity == 1
+            method.call self
+          else
+            method.call
+          end
       end
     end
 
