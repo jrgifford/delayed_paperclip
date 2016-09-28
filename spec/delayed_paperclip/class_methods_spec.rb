@@ -18,7 +18,10 @@ describe DelayedPaperclip::ClassMethods do
           :only_process => [],
           :url_with_processing => true,
           :processing_image_url => nil,
-          :queue => "paperclip"}
+          :queue => "paperclip",
+          :post_processing_callback => nil,
+          :post_update_callback => nil,
+          :pre_processing_callback => nil }
         }
       }
     end
@@ -31,7 +34,10 @@ describe DelayedPaperclip::ClassMethods do
           :only_process => [],
           :url_with_processing => true,
           :processing_image_url => nil,
-          :queue => "custom"}
+          :queue => "custom",
+          :post_processing_callback => nil,
+          :post_update_callback => nil,
+          :pre_processing_callback => nil }
         }
       })
     end
@@ -48,7 +54,10 @@ describe DelayedPaperclip::ClassMethods do
             :only_process => [],
             :url_with_processing => true,
             :processing_image_url => "/processing/url",
-            :queue => "paperclip"}
+            :queue => "paperclip",
+            :post_processing_callback => nil,
+            :post_update_callback => nil,
+            :pre_processing_callback => nil }
           }
         }
       end
@@ -68,7 +77,10 @@ describe DelayedPaperclip::ClassMethods do
             :only_process => [:small, :large],
             :url_with_processing => true,
             :processing_image_url => nil,
-            :queue => "paperclip"}
+            :queue => "paperclip",
+            :post_processing_callback => nil,
+            :post_update_callback => nil,
+            :pre_processing_callback => nil }
           }
         }
       end
