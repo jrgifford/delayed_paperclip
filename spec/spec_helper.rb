@@ -83,6 +83,7 @@ def build_dummy_table(with_column)
     t.string   :image_content_type
     t.integer  :image_file_size
     t.datetime :image_updated_at
+    t.boolean :hidden, :default => false
     t.boolean(:image_processing, :default => false) if with_column
   end
 end
@@ -107,6 +108,8 @@ def reset_class(class_name, options)
     process_in_background :image, options if options[:with_processed]
 
     after_update :reprocess if options[:with_after_update_callback]
+
+    default_scope options[:default_scope] if options[:default_scope]
 
     def reprocess
       image.reprocess!

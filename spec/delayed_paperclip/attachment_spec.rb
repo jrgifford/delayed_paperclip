@@ -238,7 +238,24 @@ describe DelayedPaperclip::Attachment do
 
       dummy.image.send(:update_processing_column)
 
-      dummy.image_processing.should be_falsey
+      dummy.reload.image_processing.should be_falsey
+    end
+
+    context 'with a  default scope on the model excluding the instance' do
+      let(:dummy_options) do
+        { :default_scope => lambda { Dummy.where(hidden: false) } }
+      end
+
+      let!(:dummy) { Dummy.create(hidden: true) }
+
+      specify { Dummy.count.should be 0 }
+      specify { Dummy.unscoped.count.should be 1 }
+
+      it "ignores the default scope and updates the column to false" do
+        dummy.update_attribute(:image_processing, true)
+        dummy.image.send(:update_processing_column)
+        dummy.reload.image_processing.should be_falsey
+      end
     end
   end
 

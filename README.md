@@ -120,6 +120,18 @@ class Item < ActiveRecord::Base
 end
 ```
 
+Another option is to provide an object which responds to `call` to `processing_image_url` and returns the image url. The method will be called with the attachment as the argument. 
+
+```ruby
+class Item < ActiveRecord::Base
+  has_attached_file :photo
+
+  process_in_background :photo, processing_image_url: ->(attachment) {
+    ActionController::Base.helpers.image_path("processing.gif")
+  }
+end
+```
+
 #### Have processing? status available, but construct image URLs as if delayed_paperclip wasn’t present
 
 If you define the `#{attachment_name}_processing` column, but set the

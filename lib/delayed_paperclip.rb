@@ -26,7 +26,10 @@ module DelayedPaperclip
     end
 
     def process_job(instance_klass, instance_id, attachment_name)
-      instance_klass.constantize.unscoped.find(instance_id).
+      instance = instance_klass.constantize.unscoped.where(id: instance_id).first
+      return if instance.blank?
+
+      instance.
         send(attachment_name).
         process_delayed!
     end
@@ -71,7 +74,7 @@ module DelayedPaperclip
     end
 
     def paperclip_definitions
-      @paperclip_definitions ||= if respond_to? :attachment_definitions
+      if respond_to? :attachment_definitions
         attachment_definitions
       else
         Paperclip::Tasks::Attachments.definitions_for(self)
@@ -99,7 +102,7 @@ module DelayedPaperclip
       unless @_enqued_for_processing_with_processing.blank? # catches nil and empty arrays
         updates = @_enqued_for_processing_with_processing.collect{|n| "#{n}_processing = :true" }.join(", ")
         updates = ActiveRecord::Base.send(:sanitize_sql_array, [updates, {:true => true}])
-        self.class.where(:id => self.id).update_all(updates)
+        self.class.unscoped.where(:id => self.id).update_all(updates)
       end
     end
 
